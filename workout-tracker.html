@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summer Grind</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Summer Grind">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --card: #1e1e1e;
+    --border: #2a2a2a;
+    --orange: #ff6b1a;
+    --orange-dim: rgba(255,107,26,0.15);
+    --green: #39d98a;
+    --green-dim: rgba(57,217,138,0.12);
+    --text: #f0f0f0;
+    --muted: #666;
+    --muted2: #444;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 2px;
+    color: var(--orange);
+    line-height: 1;
+  }
+
+  .season-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 4px;
+  }
+
+  .header-right {
+    margin-left: auto;
+    text-align: right;
+  }
+
+  .overall-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--orange);
+    line-height: 1;
+  }
+
+  .overall-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* PROGRESS BAR GLOBAL */
+  .global-bar-wrap {
+    padding: 0 24px;
+    background: var(--bg);
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .global-bar-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .global-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ffaa00);
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* PHASE TABS */
+  .phase-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 24px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .phase-tabs::-webkit-scrollbar { display: none; }
+
+  .phase-tab {
+    flex-shrink: 0;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .phase-tab.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #000;
+  }
+
+  .phase-tab:hover:not(.active) {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  /* MAIN CONTENT */
+  main {
+    padding: 20px 24px 0;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* WEEK SECTION */
+  .week-block {
+    margin-bottom: 28px;
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .week-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+
+  .week-progress {
+    font-size: 0.7rem;
+    color: var(--muted2);
+    font-weight: 600;
+  }
+
+  .week-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* DAY CARDS */
+  .day-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 10px;
+  }
+
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .day-card:hover {
+    border-color: var(--orange);
+    transform: translateY(-2px);
+  }
+
+  .day-card.done {
+    background: var(--green-dim);
+    border-color: var(--green);
+  }
+
+  .day-card.done:hover {
+    border-color: var(--green);
+  }
+
+  .day-card.rest {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .day-card.rest:hover {
+    border-color: var(--border);
+    transform: none;
+  }
+
+  .card-day-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .card-workout-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .day-card.done .card-workout-name {
+    color: var(--green);
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--muted);
+  }
+
+  .day-card.done .tag {
+    background: rgba(57,217,138,0.15);
+    color: var(--green);
+  }
+
+  .check-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+
+  .day-card.done .check-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .check-icon svg {
+    width: 10px;
+    height: 10px;
+    stroke: #000;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* REST DAY */
+  .card-rest-label {
+    font-size: 0.7rem;
+    color: var(--muted2);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  /* PHASE PROGRESS */
+  .phase-bar-wrap {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .phase-bar-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .phase-bar-name {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .phase-bar-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .phase-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .phase-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ffaa00);
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* EMPTY STATE */
+  .empty-phase {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  /* RESET BUTTON */
+  .reset-btn {
+    display: block;
+    margin: 32px auto 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: #ff4444;
+    color: #ff4444;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 20px;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast.undo {
+    background: var(--muted2);
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Summer Grind</div>
+    <div class="season-label">2026 Blueprint</div>
+  </div>
+  <div class="header-right">
+    <div class="overall-pct" id="overallPct">0%</div>
+    <div class="overall-label">Complete</div>
+  </div>
+</header>
+
+<div class="global-bar-wrap">
+  <div class="global-bar-track">
+    <div class="global-bar-fill" id="globalBar" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="phase-tabs" id="phaseTabs"></div>
+
+<main id="mainContent"></main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── YOUR WORKOUT PLAN ──────────────────────────────────────────────────────
+// Edit this to match your actual summer blueprint.
+// days: array of 7 entries (Mon–Sun). null = rest day.
+// tags: short muscle/focus labels shown on the card.
+const PLAN = [
+  {
+    id: "phase1",
+    name: "Phase 1 — Foundation",
+    weeks: [
+      {
+        label: "Week 1",
+        days: [
+          { day: "Mon", workout: "Chest & Triceps", tags: ["push"] },
+          { day: "Tue", workout: "Back & Biceps", tags: ["pull"] },
+          { day: "Wed", workout: "Legs", tags: ["quads", "glutes"] },
+          { day: "Thu", workout: "Shoulders", tags: ["push"] },
+          { day: "Fri", workout: "Full Body", tags: ["compound"] },
+          { day: "Sat", workout: "Cardio", tags: ["conditioning"] },
+          null,
+        ]
+      },
+      {
+        label: "Week 2",
+        days: [
+          { day: "Mon", workout: "Chest & Triceps", tags: ["push"] },
+          { day: "Tue", workout: "Back & Biceps", tags: ["pull"] },
+          { day: "Wed", workout: "Legs", tags: ["quads", "hamstrings"] },
+          { day: "Thu", workout: "Shoulders", tags: ["push"] },
+          { day: "Fri", workout: "Full Body", tags: ["compound"] },
+          { day: "Sat", workout: "Basketball", tags: ["sport"] },
+          null,
+        ]
+      },
+    ]
+  },
+  {
+    id: "phase2",
+    name: "Phase 2 — Build",
+    weeks: [
+      {
+        label: "Week 3",
+        days: [
+          { day: "Mon", workout: "Heavy Chest", tags: ["push", "heavy"] },
+          { day: "Tue", workout: "Heavy Back", tags: ["pull", "heavy"] },
+          { day: "Wed", workout: "Leg Day", tags: ["quads", "glutes"] },
+          null,
+          { day: "Fri", workout: "Shoulders & Arms", tags: ["push", "pull"] },
+          { day: "Sat", workout: "Cardio & Core", tags: ["conditioning"] },
+          null,
+        ]
+      },
+      {
+        label: "Week 4",
+        days: [
+          { day: "Mon", workout: "Heavy Chest", tags: ["push", "heavy"] },
+          { day: "Tue", workout: "Heavy Back", tags: ["pull", "heavy"] },
+          { day: "Wed", workout: "Leg Day", tags: ["hamstrings", "glutes"] },
+          null,
+          { day: "Fri", workout: "Shoulders & Arms", tags: ["push", "pull"] },
+          { day: "Sat", workout: "Basketball", tags: ["sport"] },
+          null,
+        ]
+      },
+    ]
+  },
+  {
+    id: "phase3",
+    name: "Phase 3 — Peak",
+    weeks: [
+      {
+        label: "Week 5",
+        days: [
+          { day: "Mon", workout: "Upper Body", tags: ["push", "pull"] },
+          { day: "Tue", workout: "Lower Body", tags: ["legs"] },
+          { day: "Wed", workout: "Cardio", tags: ["conditioning"] },
+          { day: "Thu", workout: "Upper Body", tags: ["push", "pull"] },
+          { day: "Fri", workout: "Lower Body", tags: ["legs"] },
+          { day: "Sat", workout: "Basketball", tags: ["sport"] },
+          null,
+        ]
+      },
+      {
+        label: "Week 6",
+        days: [
+          { day: "Mon", workout: "Full Body", tags: ["compound"] },
+          { day: "Tue", workout: "Cardio & Core", tags: ["conditioning"] },
+          { day: "Wed", workout: "Upper Body", tags: ["push", "pull"] },
+          { day: "Thu", workout: "Lower Body", tags: ["legs"] },
+          null,
+          { day: "Sat", workout: "Basketball", tags: ["sport"] },
+          null,
+        ]
+      },
+    ]
+  }
+];
+// ────────────────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "summer_grind_v1";
+let state = loadState();
+let activePhase = PLAN[0].id;
+
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function cardId(phaseId, weekIdx, dayIdx) {
+  return `${phaseId}_w${weekIdx}_d${dayIdx}`;
+}
+
+function isDone(id) { return !!state[id]; }
+
+function toggleDone(id, el) {
+  const wasD = isDone(id);
+  if (wasD) {
+    delete state[id];
+    el.classList.remove("done");
+    showToast("Marked undone", true);
+  } else {
+    state[id] = true;
+    el.classList.add("done");
+    showToast("Workout done! 🔥");
+  }
+  saveState();
+  updateProgress();
+}
+
+// Count totals
+function countAll() {
+  let total = 0, done = 0;
+  PLAN.forEach(phase => {
+    phase.weeks.forEach((week, wi) => {
+      week.days.forEach((day, di) => {
+        if (!day) return;
+        total++;
+        if (isDone(cardId(phase.id, wi, di))) done++;
+      });
+    });
+  });
+  return { total, done };
+}
+
+function countPhase(phaseId) {
+  const phase = PLAN.find(p => p.id === phaseId);
+  let total = 0, done = 0;
+  phase.weeks.forEach((week, wi) => {
+    week.days.forEach((day, di) => {
+      if (!day) return;
+      total++;
+      if (isDone(cardId(phaseId, wi, di))) done++;
+    });
+  });
+  return { total, done };
+}
+
+function updateProgress() {
+  const { total, done } = countAll();
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById("overallPct").textContent = pct + "%";
+  document.getElementById("globalBar").style.width = pct + "%";
+
+  // update phase bars
+  PLAN.forEach(phase => {
+    const bar = document.getElementById("pbar_" + phase.id);
+    const cnt = document.getElementById("pcnt_" + phase.id);
+    if (!bar) return;
+    const c = countPhase(phase.id);
+    const p = c.total ? Math.round((c.done / c.total) * 100) : 0;
+    bar.style.width = p + "%";
+    if (cnt) cnt.textContent = `${c.done}/${c.total}`;
+  });
+}
+
+// ── BUILD UI ──────────────────────────────────────────────────────────────────
+
+function buildTabs() {
+  const wrap = document.getElementById("phaseTabs");
+  wrap.innerHTML = "";
+  PLAN.forEach(phase => {
+    const btn = document.createElement("button");
+    btn.className = "phase-tab" + (phase.id === activePhase ? " active" : "");
+    btn.textContent = phase.name.split("—")[0].trim();
+    btn.addEventListener("click", () => {
+      activePhase = phase.id;
+      document.querySelectorAll(".phase-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      buildMain();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function buildMain() {
+  const main = document.getElementById("mainContent");
+  main.innerHTML = "";
+
+  const phase = PLAN.find(p => p.id === activePhase);
+  if (!phase) return;
+
+  // Phase progress bar
+  const c = countPhase(phase.id);
+  const phasePct = c.total ? Math.round((c.done / c.total) * 100) : 0;
+
+  const pbarEl = document.createElement("div");
+  pbarEl.className = "phase-bar-wrap";
+  pbarEl.innerHTML = `
+    <div class="phase-bar-top">
+      <span class="phase-bar-name">${phase.name}</span>
+      <span class="phase-bar-count" id="pcnt_${phase.id}">${c.done}/${c.total}</span>
+    </div>
+    <div class="phase-bar-track">
+      <div class="phase-bar-fill" id="pbar_${phase.id}" style="width:${phasePct}%"></div>
+    </div>
+  `;
+  main.appendChild(pbarEl);
+
+  // Weeks
+  phase.weeks.forEach((week, wi) => {
+    const wDone = week.days.filter((d, di) => d && isDone(cardId(phase.id, wi, di))).length;
+    const wTotal = week.days.filter(Boolean).length;
+
+    const block = document.createElement("div");
+    block.className = "week-block";
+
+    const wHeader = document.createElement("div");
+    wHeader.className = "week-header";
+    wHeader.innerHTML = `
+      <span class="week-title">${week.label}</span>
+      <span class="week-progress">${wDone}/${wTotal}</span>
+      <div class="week-line"></div>
+    `;
+    block.appendChild(wHeader);
+
+    const grid = document.createElement("div");
+    grid.className = "day-grid";
+
+    week.days.forEach((day, di) => {
+      const card = document.createElement("div");
+
+      if (!day) {
+        card.className = "day-card rest";
+        card.innerHTML = `
+          <div class="card-day-label">Sun</div>
+          <div class="card-workout-name" style="color:var(--muted2)">Rest Day</div>
+          <div class="card-rest-label">Recover</div>
+        `;
+      } else {
+        const id = cardId(phase.id, wi, di);
+        const done = isDone(id);
+        card.className = "day-card" + (done ? " done" : "");
+        card.dataset.id = id;
+        const tagsHtml = day.tags.map(t => `<span class="tag">${t}</span>`).join("");
+        card.innerHTML = `
+          <div class="check-icon"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+          <div class="card-day-label">${day.day}</div>
+          <div class="card-workout-name">${day.workout}</div>
+          <div class="card-tags">${tagsHtml}</div>
+        `;
+        card.addEventListener("click", () => toggleDone(id, card));
+      }
+
+      grid.appendChild(card);
+    });
+
+    block.appendChild(grid);
+    main.appendChild(block);
+  });
+
+  // Reset button
+  const resetBtn = document.createElement("button");
+  resetBtn.className = "reset-btn";
+  resetBtn.textContent = "Reset All Progress";
+  resetBtn.addEventListener("click", () => {
+    if (confirm("Reset all checked workouts? This can't be undone.")) {
+      state = {};
+      saveState();
+      buildMain();
+      updateProgress();
+    }
+  });
+  main.appendChild(resetBtn);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastTimeout;
+function showToast(msg, undo = false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (undo ? " undo" : "");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { t.classList.remove("show"); }, 1800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildTabs();
+buildMain();
+updateProgress();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>
