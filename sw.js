@@ -1,5 +1,9 @@
-const CACHE = 'summer-grind-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'summer-grind-v2';
+const ASSETS = [
+  '/Summer-Tracker/',
+  '/Summer-Tracker/index.html',
+  '/Summer-Tracker/manifest.json'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
